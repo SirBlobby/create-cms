@@ -231,7 +231,8 @@ export const schemas: Record<string, Field[]> = {
 			key: 'slug',
 			label: 'Slug',
 			type: 'text',
-			help: 'Used in the profile page URL, e.g. "jane-doe". Must be unique.'
+			autoSlugFrom: 'name',
+			help: 'Auto-generated from the name and used in the profile page URL, e.g. "jane-doe". Must be unique.'
 		},
 		{ key: 'role', label: 'Role', type: 'select', options: ['professor', 'member'], required: true },
 		{ key: 'group', label: 'Group heading', type: 'text', help: 'e.g. "Ph.D. Students" or "Alumni".' },
