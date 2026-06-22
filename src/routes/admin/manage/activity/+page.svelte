@@ -3,6 +3,15 @@
 
 	let { data, form } = $props();
 
+	const pageSize = 10;
+	let page = $state(1);
+	const totalPages = $derived(Math.max(1, Math.ceil(data.entries.length / pageSize)));
+	const visible = $derived(data.entries.slice((page - 1) * pageSize, page * pageSize));
+
+	function go(target: number) {
+		page = Math.min(totalPages, Math.max(1, target));
+	}
+
 	function formatTime(value: string | Date): string {
 		const date = new Date(value);
 		if (Number.isNaN(date.getTime())) return '';
@@ -51,7 +60,7 @@
 		</div>
 	{:else}
 		<ul class="divide-y divide-slate-100">
-			{#each data.entries as entry (entry.id)}
+			{#each visible as entry (entry.id)}
 				<li class="flex items-start gap-3 px-5 py-3">
 					<Icon icon="mdi:circle-small" width="20" class="mt-0.5 shrink-0 text-gmu-green" />
 					<div class="min-w-0 flex-1">
@@ -66,5 +75,28 @@
 				</li>
 			{/each}
 		</ul>
+		{#if totalPages > 1}
+			<div class="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-3 sm:px-5">
+				<button
+					type="button"
+					class="btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+					disabled={page === 1}
+					onclick={() => go(page - 1)}
+				>
+					<Icon icon="mdi:chevron-left" width="16" />
+					Prev
+				</button>
+				<span class="text-xs text-muted">Page {page} of {totalPages}</span>
+				<button
+					type="button"
+					class="btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+					disabled={page === totalPages}
+					onclick={() => go(page + 1)}
+				>
+					Next
+					<Icon icon="mdi:chevron-right" width="16" />
+				</button>
+			</div>
+		{/if}
 	{/if}
 </div>
