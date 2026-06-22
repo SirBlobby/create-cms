@@ -8,6 +8,7 @@ import {
 	createSession,
 	SESSION_COOKIE
 } from '$lib/server/auth';
+import { logActivity } from '$lib/server/activity';
 
 function setSessionCookie(
 	cookies: import('@sveltejs/kit').Cookies,
@@ -41,6 +42,7 @@ export const actions: Actions = {
 		}
 		const { token, expiresAt } = await createSession(user.id);
 		setSessionCookie(cookies, token, expiresAt);
+		await logActivity(user.email, 'Signed in', '');
 		redirect(303, '/');
 	},
 	register: async ({ request, cookies }) => {
@@ -56,6 +58,7 @@ export const actions: Actions = {
 		const id = await createUser(email, password);
 		const { token, expiresAt } = await createSession(id);
 		setSessionCookie(cookies, token, expiresAt);
+		await logActivity(email, 'Registered and signed in', '');
 		redirect(303, '/');
 	}
 };

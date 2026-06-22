@@ -4,15 +4,12 @@
 	let { data, form } = $props();
 </script>
 
-<svelte:head><title>Users | CREATE CMS</title></svelte:head>
-
-<h1 class="page-title">Users</h1>
-<p class="page-subtitle">Editors who can sign in and manage content.</p>
+<p class="text-sm text-muted">Editors who can sign in and manage content.</p>
 
 <form
 	method="POST"
 	action="?/create"
-	class="card mt-6 grid gap-3 p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1fr_1fr_auto]"
+	class="card mt-4 grid gap-3 p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1fr_1fr_auto]"
 >
 	<div>
 		<label for="email" class="field-label">Email</label>
@@ -38,18 +35,44 @@
 				<span class="flex min-w-0 items-center gap-2.5">
 					<Icon icon="mdi:account-circle-outline" width="22" class="shrink-0 text-slate-400" />
 					<span class="truncate text-sm font-medium">{user.email}</span>
+					{#if user.owner}
+						<span class="badge-green shrink-0 inline-flex items-center gap-1">
+							<Icon icon="mdi:crown" width="13" />
+							Owner
+						</span>
+					{/if}
+					{#if user.id === data.currentUserId}
+						<span class="badge-muted shrink-0">You</span>
+					{/if}
 				</span>
-				{#if user.id !== data.currentUserId}
-					<form method="POST" action="?/delete" class="shrink-0">
-						<input type="hidden" name="id" value={user.id} />
-						<button class="flex items-center gap-1 text-xs font-medium text-red-600 hover:underline">
-							<Icon icon="mdi:account-remove-outline" width="16" />
-							Remove
-						</button>
-					</form>
-				{:else}
-					<span class="badge-green shrink-0">You</span>
-				{/if}
+				<div class="flex shrink-0 items-center gap-4">
+					{#if data.isOwner && !user.owner}
+						<form
+							method="POST"
+							action="?/transfer"
+							onsubmit={(event) => {
+								if (!confirm(`Transfer ownership to ${user.email}? You will become a regular user.`)) {
+									event.preventDefault();
+								}
+							}}
+						>
+							<input type="hidden" name="id" value={user.id} />
+							<button class="flex items-center gap-1 text-xs font-medium text-gmu-green hover:underline">
+								<Icon icon="mdi:crown-outline" width="16" />
+								Make owner
+							</button>
+						</form>
+					{/if}
+					{#if user.id !== data.currentUserId && !user.owner}
+						<form method="POST" action="?/delete">
+							<input type="hidden" name="id" value={user.id} />
+							<button class="flex items-center gap-1 text-xs font-medium text-red-600 hover:underline">
+								<Icon icon="mdi:account-remove-outline" width="16" />
+								Remove
+							</button>
+						</form>
+					{/if}
+				</div>
 			</li>
 		{/each}
 	</ul>

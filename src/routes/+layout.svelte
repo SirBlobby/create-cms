@@ -20,7 +20,7 @@
 			icon: iconFor(collection.key)
 		})),
 		{ label: 'Media', href: '/admin/media', icon: iconFor('media') },
-		{ label: 'Users', href: '/admin/users', icon: iconFor('users') },
+		{ label: 'Manage', href: '/admin/manage', icon: 'mdi:shield-account-outline' },
 		{ label: 'Profile', href: '/admin/profile', icon: 'mdi:account-cog-outline' }
 	];
 

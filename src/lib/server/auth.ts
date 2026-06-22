@@ -6,6 +6,20 @@ export type SessionUser = { id: string; email: string };
 
 const SESSION_DAYS = 7;
 export const SESSION_COOKIE = 'cms_session';
+export const OWNER_EMAIL = 'gmanjuna@gmu.edu';
+
+export async function getOwnerId(): Promise<string | null> {
+	const db = await getDb();
+	const users = db.collection('users');
+	const flagged = await users.findOne({ owner: true });
+	if (flagged) return flagged._id.toString();
+	const byEmail = await users.findOne({ email: OWNER_EMAIL });
+	if (byEmail) {
+		await users.updateOne({ _id: byEmail._id }, { $set: { owner: true } });
+		return byEmail._id.toString();
+	}
+	return null;
+}
 
 function hashPassword(password: string): string {
 	const salt = randomBytes(16).toString('hex');
@@ -28,11 +42,13 @@ export async function countUsers(): Promise<number> {
 
 export async function listUsers() {
 	const db = await getDb();
+	const ownerId = await getOwnerId();
 	const users = await db.collection('users').find({}).sort({ createdAt: 1 }).toArray();
 	return users.map((user) => ({
 		id: user._id.toString(),
 		email: user.email,
-		createdAt: user.createdAt
+		createdAt: user.createdAt,
+		owner: user._id.toString() === ownerId
 	}));
 }
 
@@ -52,8 +68,23 @@ export async function createUser(email: string, password: string): Promise<strin
 }
 
 export async function deleteUser(id: string): Promise<void> {
+	const ownerId = await getOwnerId();
+	if (id === ownerId) {
+		throw new Error('The owner account cannot be removed');
+	}
 	const db = await getDb();
 	await db.collection('users').deleteOne({ _id: new ObjectId(id) });
+}
+
+export async function transferOwner(toUserId: string): Promise<void> {
+	const db = await getDb();
+	const users = db.collection('users');
+	const target = await users.findOne({ _id: new ObjectId(toUserId) });
+	if (!target) {
+		throw new Error('User not found');
+	}
+	await users.updateMany({ owner: true }, { $set: { owner: false } });
+	await users.updateOne({ _id: new ObjectId(toUserId) }, { $set: { owner: true } });
 }
 
 export async function getUser(id: string) {

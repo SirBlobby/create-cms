@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { uploadFile, isAllowedUpload } from '$lib/server/files';
+import { logActivity } from '$lib/server/activity';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -16,5 +17,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 	const buffer = Buffer.from(await file.arrayBuffer());
 	const id = await uploadFile(file.name, file.type || 'application/octet-stream', buffer);
+	await logActivity(locals.user.email, 'Uploaded media', file.name);
 	return json({ id, path: `/api/files/${id}` });
 };

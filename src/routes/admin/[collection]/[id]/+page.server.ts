@@ -10,6 +10,7 @@ import {
 import { templates } from '$lib/templates';
 import { schemaFor, applyAutoSlugs } from '$lib/schema';
 import { mirrorExternalFile } from '$lib/server/files';
+import { logActivity } from '$lib/server/activity';
 
 async function mirrorFileFields(collection: string, data: Record<string, unknown>): Promise<void> {
 	for (const field of schemaFor(collection)) {
@@ -59,11 +60,14 @@ export const actions: Actions = {
 		}
 		applyAutoSlugs(schemaFor(params.collection), parsed);
 		await mirrorFileFields(params.collection, parsed);
+		const title = String(parsed[meta.titleField] ?? '') || '(untitled)';
 		if (params.id === 'new') {
 			const id = await createDocument(params.collection, parsed);
+			await logActivity(locals.user.email, 'Created entry', `${meta.label}: ${title}`);
 			redirect(303, `/admin/${params.collection}/${id}`);
 		}
 		await updateDocument(params.collection, params.id, parsed);
+		await logActivity(locals.user.email, 'Updated entry', `${meta.label}: ${title}`);
 		redirect(303, `/admin/${params.collection}`);
 	},
 	delete: async ({ params, locals }) => {
@@ -71,7 +75,15 @@ export const actions: Actions = {
 			redirect(303, '/login');
 		}
 		if (params.id !== 'new') {
+			const meta = getCollectionMeta(params.collection);
+			const doc = await getDocument(params.collection, params.id);
+			const title = meta && doc ? String(doc[meta.titleField] ?? '') || '(untitled)' : params.id;
 			await deleteDocument(params.collection, params.id);
+			await logActivity(
+				locals.user.email,
+				'Deleted entry',
+				meta ? `${meta.label}: ${title}` : title
+			);
 		}
 		redirect(303, `/admin/${params.collection}`);
 	}

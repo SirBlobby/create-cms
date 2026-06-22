@@ -1,6 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getUser, updateEmail, changePassword } from '$lib/server/auth';
+import { logActivity } from '$lib/server/activity';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -25,6 +26,7 @@ export const actions: Actions = {
 		} catch (updateError) {
 			return fail(400, { section: 'email', error: (updateError as Error).message });
 		}
+		await logActivity(locals.user.email, 'Changed account email', email);
 		return { section: 'email', success: true };
 	},
 	password: async ({ request, locals }) => {
@@ -46,6 +48,7 @@ export const actions: Actions = {
 		} catch (updateError) {
 			return fail(400, { section: 'password', error: (updateError as Error).message });
 		}
+		await logActivity(locals.user.email, 'Changed account password', '');
 		return { section: 'password', success: true };
 	}
 };

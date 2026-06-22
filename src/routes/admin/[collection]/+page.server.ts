@@ -11,6 +11,7 @@ import { templates } from '$lib/templates';
 import { schemaFor } from '$lib/schema';
 import { mirrorExternalFileResult } from '$lib/server/files';
 import { tagsById, type RawPublication } from '$lib/publications';
+import { logActivity } from '$lib/server/activity';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) {
@@ -59,6 +60,7 @@ export const actions: Actions = {
 		} else {
 			await createDocument(params.collection, parsed);
 		}
+		await logActivity(locals.user.email, 'Updated entry', meta.label);
 		redirect(303, `/admin/${params.collection}`);
 	},
 	mirrorPdfs: async ({ params, locals }) => {
@@ -101,6 +103,11 @@ export const actions: Actions = {
 			}
 		}
 		console.log(`[mirror] done: ${mirrored} stored, ${failures.length} failed`);
+		await logActivity(
+			locals.user.email,
+			'Downloaded PDFs',
+			`${meta.label}: ${mirrored} stored, ${failures.length} failed`
+		);
 		return { mirrored, failed: failures.length, failures };
 	},
 	reorder: async ({ params, request, locals }) => {
@@ -116,6 +123,7 @@ export const actions: Actions = {
 			.split(',')
 			.filter(Boolean);
 		await reorderDocuments(params.collection, ids);
+		await logActivity(locals.user.email, 'Reordered entries', meta.label);
 		return { reordered: true };
 	}
 };

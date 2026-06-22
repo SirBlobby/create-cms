@@ -1,6 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { listFiles, uploadFile, deleteFile, isAllowedUpload } from '$lib/server/files';
+import { logActivity } from '$lib/server/activity';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -24,6 +25,7 @@ export const actions: Actions = {
 		}
 		const buffer = Buffer.from(await file.arrayBuffer());
 		await uploadFile(file.name, file.type || 'application/octet-stream', buffer);
+		await logActivity(locals.user.email, 'Uploaded media', file.name);
 		return { success: true };
 	},
 	delete: async ({ request, locals }) => {
@@ -34,6 +36,7 @@ export const actions: Actions = {
 		const id = String(formData.get('id') ?? '');
 		if (id) {
 			await deleteFile(id);
+			await logActivity(locals.user.email, 'Deleted media', id);
 		}
 		return { success: true };
 	}
