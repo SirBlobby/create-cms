@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import FieldEditor from './FieldEditor.svelte';
 	import { ensureShape, type Field } from '$lib/schema';
@@ -15,7 +16,7 @@
 		error?: string;
 	} = $props();
 
-	let doc = $state(ensureShape(structuredClone(initial), fields));
+	let doc = $state(untrack(() => ensureShape(structuredClone(initial), fields)));
 
 	const serialized = $derived(JSON.stringify(doc));
 </script>

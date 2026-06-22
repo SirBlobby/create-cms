@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import FieldEditor from './FieldEditor.svelte';
 	import RichTextField from './RichTextField.svelte';
@@ -14,8 +15,10 @@
 	let uploadError = $state('');
 	let cropFile = $state<File | null>(null);
 
-	const autoSlugFrom = 'autoSlugFrom' in field ? (field.autoSlugFrom ?? '') : '';
-	let slugEdited = $state(Boolean(autoSlugFrom) && Boolean(container[field.key]));
+	const autoSlugFrom = $derived('autoSlugFrom' in field ? (field.autoSlugFrom ?? '') : '');
+	let slugEdited = $state(
+		untrack(() => Boolean(autoSlugFrom) && Boolean(container[field.key]))
+	);
 
 	function slugify(value: unknown): string {
 		return String(value ?? '')
