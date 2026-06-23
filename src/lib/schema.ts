@@ -89,14 +89,22 @@ export const schemas: Record<string, Field[]> = {
 			label: 'Read more link',
 			type: 'select',
 			options: ['none', 'external', 'article'],
-			help: 'Where the "Read more" link points: nowhere, an external URL, or an internal research article.'
+			help: 'Where the "Read more" link points: nowhere, an external URL, or a news page on this site.'
 		},
-		{ key: 'href', label: 'External link', type: 'url', help: 'Used when the link is set to external.' },
 		{
-			key: 'articleSlug',
-			label: 'Research article slug',
+			key: 'href',
+			label: 'External link',
+			type: 'url',
+			showWhen: { field: 'linkType', equals: 'external' },
+			help: 'Used when the link is set to external.'
+		},
+		{
+			key: 'slug',
+			label: 'Slug',
 			type: 'text',
-			help: 'Used when the link is set to article. Must match a research article slug.'
+			autoSlugFrom: 'title',
+			showWhen: { field: 'linkType', equals: 'article' },
+			help: 'Auto-generated from the title. The URL for this news page, e.g. /news/my-update.'
 		},
 		{ key: 'order', label: 'Order', type: 'number' }
 	],
@@ -248,6 +256,7 @@ export const schemas: Record<string, Field[]> = {
 		{ key: 'role', label: 'Role', type: 'select', options: ['professor', 'member'], required: true },
 		{ key: 'group', label: 'Group heading', type: 'text', help: 'e.g. "Ph.D. Students" or "Alumni".' },
 		{ key: 'period', label: 'Period', type: 'text' },
+		{ key: 'areaOfStudy', label: 'Area of Study', type: 'text', help: 'e.g. "Computer Engineering". Optional.' },
 		{ key: 'photo', label: 'Photo', type: 'image' },
 		{ key: 'note', label: 'Note', type: 'text' },
 		{
@@ -317,7 +326,7 @@ export function slugify(value: unknown): string {
 
 export function applyAutoSlugs(fields: Field[], data: Record<string, unknown>): void {
 	for (const field of fields) {
-		if (field.type === 'text' && field.autoSlugFrom) {
+		if (field.type === 'text' && field.autoSlugFrom && isFieldVisible(field, data)) {
 			const current = data[field.key];
 			if (typeof current !== 'string' || current.trim() === '') {
 				data[field.key] = slugify(data[field.autoSlugFrom]);

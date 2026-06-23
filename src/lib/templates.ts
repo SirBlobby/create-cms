@@ -10,7 +10,7 @@ export const templates: Record<string, unknown> = {
 		showAccessibility: true,
 		contact: { department: '', address: [''], email: '' }
 	},
-	news: { title: '', date: '', body: '', linkType: 'none', href: '', articleSlug: '', order: 0 },
+	news: { title: '', date: '', body: '', linkType: 'none', href: '', slug: '', order: 0 },
 	projects: {
 		title: '',
 		summary: '',
@@ -53,6 +53,7 @@ export const templates: Record<string, unknown> = {
 		role: 'member',
 		group: 'Ph.D. Students',
 		period: '',
+		areaOfStudy: '',
 		photo: '',
 		note: '',
 		bio: '',
