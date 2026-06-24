@@ -11,7 +11,7 @@
 	let uploadingFile = $state(false);
 	let dropActive = $state(false);
 	let droppedName = $state('');
-	let fileInput: HTMLInputElement;
+	let fileInput = $state<HTMLInputElement | null>(null);
 	let filter = $state<'all' | 'image' | 'pdf' | 'links' | 'snapshots'>('all');
 
 	function isExternalUrl(value: string): boolean {
@@ -22,7 +22,7 @@
 		event.preventDefault();
 		dropActive = false;
 		const files = event.dataTransfer?.files;
-		if (files && files.length > 0) {
+		if (files && files.length > 0 && fileInput) {
 			fileInput.files = files;
 			droppedName = files[0].name;
 		}
@@ -304,7 +304,7 @@
 				accept="text/html,.html,.htm,image/*,application/pdf,.pdf"
 				required
 				class="hidden"
-				onchange={() => (droppedName = fileInput.files?.[0]?.name ?? '')}
+				onchange={() => (droppedName = fileInput?.files?.[0]?.name ?? '')}
 			/>
 			<Icon icon="mdi:cloud-upload-outline" width="32" class="text-gmu-green" />
 			{#if droppedName}
